@@ -5,7 +5,7 @@ import tkinter.constants, tkinter.filedialog
 import Define as DF
 import datetime
 import Main
-
+import re
 import random
 import datetime as dt
 
@@ -14,8 +14,8 @@ font1="Arial 16 bold"
 TestConfigArrayGUI = []
 ChannelCountGUI = 0
 GlobalRoot = 0
+TestModeGUI = 0
 EpromType = ["USB hub","PD","MFB","Drawer"]
-ChannelType = ["Mobius","LFP"]
 
 def DataSetter(TestArrayIN, TestChannelCount):
     global TestConfigArrayGUI
@@ -65,9 +65,11 @@ class PythonGUI():
     def VarSetup(self):
         t = datetime.datetime.now()
         self.ProgramTime = tk.StringVar()
+        self.TestUIStat = tk.StringVar()
         self.USBHubFile=tk.StringVar()
         self.USBHubFilePath=tk.StringVar()
         self.USBHubFile.set("*.bin")
+        self.TestUIStat.set("Wait")
 
         self.MFB_Type=tk.StringVar()
         self.MFB_SN=tk.StringVar()
@@ -93,9 +95,20 @@ class PythonGUI():
         global GlobalRoot
         GlobalRoot.filename =  tk.filedialog.askopenfilename(initialdir = "C:/Users/",title = "Select file",filetypes = [("bin files","*.bin")])
         self.USBHubFilePath = GlobalRoot.filename
+        print(self.USBHubFilePath)
+        split_string = re.split(r'[/.]', self.USBHubFilePath)
+        ##print(split_string)
+        ##print(len(split_string))
+        NewFileName = str(split_string[len(split_string)-2] + "." + split_string[len(split_string)-1])
+        self.USBHubFile.set(NewFileName)
+        print(NewFileName)
+        DF.SetBinFile(self.USBHubFilePath)
 
     def USBProgram(self):
         print("Program Hub")
+        result = self.GUIAskMsgBox("Do you wish to proceed? \r\n This will erase the contese of the memory")
+        if(result):
+            DF.SetStatus(1) ## Tell main to start Program process
 
     def MFBProgram(self):
         print("Program Hub")
@@ -114,14 +127,13 @@ class PythonGUI():
         # fill the left side with a big LabelFrame
         self.TestControl = tk.LabelFrame(self.StartPannelHome, text="  EEPROM Config  ", relief=tk.GROOVE, width=100, height=500)  # do NOT pack it yet!
         self.Programlbl = tk.Label(self.TestControl, text="Program Option ")
-        self.SelectProgram = ttk.Combobox(self.TestControl, values = EpromType)
-        self.SelectProgram.current(0)       
-        self.TestStatuslbl = tk.Label(self.TestControl, text="Status: ")
-        self.TestProgress = ttk.Progressbar(self.TestControl, orient='vertical', length=300, mode='determinate')
+        self.SelectProgram = ttk.Combobox(self.TestControl, values = EpromType, width=10)
+        self.SelectProgram.current(0)
+        self.SelectProgram.bind("<<ComboboxSelected>>", self.TestMode)
+        self.Status_entry = tk.Entry(self.TestControl,textvariable = self.TestUIStat,state=tk.DISABLED, width=10, disabledbackground="yellow", disabledforeground="black")
         self.Programlbl.grid(padx=5, pady=5, row=0,column=0,sticky='n')
         self.SelectProgram.grid(padx=5, pady=5, row=1,column=0,sticky='n')
-        self.TestStatuslbl.grid(padx=5, pady=5, row=2,column=0,sticky='n')
-        self.TestProgress.grid(padx=5, pady=5, row=3,column=0)
+        self.Status_entry.grid(padx=5, pady=5, row=2,column=0,sticky='n')
         self.TestControl.pack()
         self.TestControl.pack_propagate(False)
         self.StartPannelHome.add(self.TestControl)
@@ -136,35 +148,49 @@ class PythonGUI():
         ##CH output List
         ####USB Hub
         self.USBLF = tk.LabelFrame(self.TestOutput, text="  Program USB Hub ", relief=tk.GROOVE)
-        self.USBLF.grid(padx=5, pady=5, row=1,column=0,columnspan = 2)
-        self.USBFile_entry = tk.Entry(self.USBLF,textvariable = self.USBHubFile)
+        self.USBLF.grid(padx=2, pady=5, row=1,column=0,columnspan = 2)
+        self.USBFilelbl = tk.Label(self.USBLF,anchor=tk.W, text="Program File: ")
+        self.USBFile_entry = tk.Entry(self.USBLF,textvariable = self.USBHubFile,width=25,state=tk.DISABLED, disabledbackground="white", disabledforeground="black")
         self.GetButton = tk.Button(self.USBLF,anchor=tk.W,command=self.GetUSBBin,padx=5,pady=5,text="Open")
         self.ProgramButton = tk.Button(self.USBLF,anchor=tk.W,command=self.USBProgram,padx=5,pady=5,text="Program")
-        
-        self.USBFile_entry.grid(padx=5, pady=5, row=1,column=1)
-        self.GetButton.grid(padx=5, pady=5, row=2,column=0)
+
+        self.USBFilelbl.grid(padx=1, pady=5, row=0,column=0,sticky = tk.N+tk.W+tk.E)
+        self.USBFile_entry.grid(padx=1, pady=5, row=1,column=0)
+        self.GetButton.grid(padx=5, pady=5, row=1,column=1)
         self.ProgramButton.grid(padx=5, pady=5, row=2,column=1)
         ####MFB
         self.MFBLF = tk.LabelFrame(self.TestOutput, text="  Program MFB EEPROM ", relief=tk.GROOVE)
         self.MFBLF.grid(padx=5, pady=5, row=2,column=0,columnspan = 2)
+        self.MFBDaylbl = tk.Label(self.MFBLF, text="Day")
+        self.MFBMonthlbl = tk.Label(self.MFBLF, text="Month")
+        self.MFBYearlbl = tk.Label(self.MFBLF, text="Year")
         self.MFB_Day_entry = tk.Entry(self.MFBLF,textvariable = self.MFB_Day, width = 3)
         self.MFB_Month_entry = tk.Entry(self.MFBLF,textvariable = self.MFB_Month, width = 3)
         self.MFB_Year_entry = tk.Entry(self.MFBLF,textvariable = self.MFB_Year, width = 3)
         self.MFBProgramButton = tk.Button(self.MFBLF,anchor=tk.W,command=self.MFBProgram,padx=5,pady=5,text="MFB Program")
-        
-        self.MFB_Day_entry.grid(padx=5, pady=5, row=1,column=1)
-        self.MFB_Month_entry.grid(padx=5, pady=5, row=2,column=0)
+
+        self.MFBDaylbl.grid(padx=5, pady=5, row=0,column=0)
+        self.MFBMonthlbl.grid(padx=5, pady=5, row=1,column=0)
+        self.MFBYearlbl.grid(padx=5, pady=5, row=2,column=0)
+        self.MFB_Day_entry.grid(padx=5, pady=5, row=0,column=1)
+        self.MFB_Month_entry.grid(padx=5, pady=5, row=1,column=1)
         self.MFB_Year_entry.grid(padx=5, pady=5, row=2,column=1)
         #self.MFB_Year_entry.grid(padx=5, pady=5, row=2,column=1)
         self.MFBProgramButton.grid(padx=5, pady=5, row=3,column=1)
         ####PD
         self.PDLF = tk.LabelFrame(self.TestOutput, text="  Program PD EEPROM ", relief=tk.GROOVE)
         self.PDLF.grid(padx=5, pady=5, row=3,column=0,columnspan = 2)
+        self.PDDaylbl = tk.Label(self.PDLF, text="Day")
+        self.PDMonthlbl = tk.Label(self.PDLF, text="Month")
+        self.PDYearlbl = tk.Label(self.PDLF, text="Year")
         self.PD_Day_entry = tk.Entry(self.PDLF,textvariable = self.PD_Day, width = 3)
         self.PD_Month_entry = tk.Entry(self.PDLF,textvariable = self.PD_Month, width = 3)
         self.PD_Year_entry = tk.Entry(self.PDLF,textvariable = self.PD_Year, width = 3)
         self.PDProgramButton = tk.Button(self.PDLF,anchor=tk.W,command=self.USBProgram,padx=5,pady=5,text=" PD Program")
 
+        self.PDDaylbl.grid(padx=5, pady=5, row=0,column=0)
+        self.PDMonthlbl.grid(padx=5, pady=5, row=1,column=0)
+        self.PDYearlbl.grid(padx=5, pady=5, row=2,column=0)
         self.PD_Day_entry.grid(padx=5, pady=5, row=0,column=1)
         self.PD_Month_entry.grid(padx=5, pady=5, row=1,column=1)
         self.PD_Year_entry.grid(padx=5, pady=5, row=2,column=1)
@@ -173,5 +199,33 @@ class PythonGUI():
     def GUIShutdown(self):
         DF.SetAppRun(0)
 
+    def GUIStatus(self, Stat):
+        if(Stat == DF.DEVICEOK):
+            print("D OK")
+            self.Status_entry.config(bg = "#0747ea") 
+            self.TestUIStat.set("Ready")
+        if(Stat == DF.PROGRAM):
+            print("Prog ")
+            self.Status_entry.config(bg = "#f0fc0a") 
+            self.TestUIStat.set("Run")
+        if(Stat == DF.PASS):
+            print("pass")
+            self.Status_entry.config(bg = "#31ff11")
+            self.TestUIStat.set("PASS")
+        if(Stat == DF.FAIL):
+            print("fail")
+            self.Status_entry.config(bg = "#ef0e33")
+            self.TestUIStat.set("FAIL")
+
     def GUIErrorMsgBox(self, msg):
-        tk.messagebox.showerror("Title", msg,parent=self.MainLayer)
+        tk.messagebox.showerror("Warning:", msg,parent=self.MainLayer)
+
+    def GUIAskMsgBox(self, msg):
+        resut = tk.messagebox.askyesno("Proceed:", msg,parent=self.MainLayer)
+        return resut
+
+    def TestMode(self, event):
+        TestModeGUI = EpromType.index(self.SelectProgram.get())
+        DF.SetTestModeGUI(TestModeGUI)
+        DF.SetUpdateModeGUI(1)
+        ##print("Mode = ",TestModeGUI)
