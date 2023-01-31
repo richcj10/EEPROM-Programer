@@ -77,11 +77,11 @@ class EEPROM():
     def ReadPage(self,Pos): ## 8 Bytes at a time? 
         try:
             if(self.Bit == 16):
-                #print("16bit")
+                print("16bit")
                 List = self.port.exchange([0,Pos], 8)
                 return List
             if(self.Bit == 8):
-                #print("8bit")
+                print("8bit")
                 List = self.port.exchange([Pos], 8)
                 return List
         except:
@@ -93,10 +93,10 @@ class EEPROM():
             #print("First List:")
             #print(ByteArray)
             if(self.Bit == 16):
-                #print("16bit")
+                print("16bit")
                 Init = [0,Pos]
             if(self.Bit == 8):
-                #print("8bit")
+                print("8bit")
                 Init = [Pos]
             Init += bytearray(ByteArray)
             self.port.write(Init)

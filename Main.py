@@ -30,6 +30,7 @@ def SetTestMode():
     mode = DF.GetTestModeGUI()
     print("New Mode ", mode)
     EEPROMDevice.DeviceAddress(EEPROMAddress[mode])
+    EEPROMDevice.DeviceBit(8)
 
 def TestI2C():
     global EEPROMDevice
@@ -49,16 +50,17 @@ def SendBinFile():
         #print("Send to Device")
         #print(FilePath)
         BinFile = file.read(32)
-        print(hexify(BinFile))
+        #print(hexify(BinFile))
         First16 = BinFile[0:16]
-        #print(hexify(First16))
+        print(hexify(First16))
         Second16 = BinFile[16:32]
-        #print(hexify(Second16))
+        print(hexify(Second16))
         EEPROMDevice.WritePage(0,First16)
         time.sleep(0.5)
         EEPROMDevice.WritePage(16,Second16)
         time.sleep(0.5)
         ReadValue = EEPROMDevice.ReadPage(0)
+        print(hexify(ReadValue))
         time.sleep(0.5)
         ReadValue += EEPROMDevice.ReadPage(8)
         time.sleep(0.5)
@@ -72,6 +74,37 @@ def SendBinFile():
         print(a)
     finally:
         file.close()
+        return CheckPass
+
+def ProgramMFB():
+    global EEPROMDevice
+    CheckPass = 0
+    try:
+        print(DF.GetSN())
+        print(DF.GetPart())
+        print(DF.GetDayMonthYear())
+        print(DF.GetIssue())
+        First16 = 0
+        #print(hexify(First16))
+        #Second16 = BinFile[16:32]
+        #print(hexify(Second16))
+        #EEPROMDevice.WritePage(0,First16)
+        #time.sleep(0.5)
+        #EEPROMDevice.WritePage(16,Second16)
+        #time.sleep(0.5)
+        ReadValue = 0
+        #time.sleep(0.5)
+        #ReadValue += EEPROMDevice.ReadPage(8)
+        #time.sleep(0.5)
+        print(hexify(ReadValue))
+        if(First16 == ReadValue):
+            print("Good!")
+            CheckPass = 1
+        else:
+            print("Bad!")
+    except Exception as A: #(Where A is a temporary variable)
+        print(a)
+    finally:
         return CheckPass
         
 if __name__ == "__main__":
@@ -92,6 +125,10 @@ if __name__ == "__main__":
             else:
                 GUIHandel.GUIStatus(DF.FAIL)
                 GUIHandel.GUIErrorMsgBox(" Failed ")
+            DF.SetStatus(0)
+        if(DF.GetStatus() == 2):
+            print("Program MFB")
+            ProgramMFB()
             DF.SetStatus(0)
         if(DF.GetUpdateModeGUI()):
             DF.SetUpdateModeGUI(0)
