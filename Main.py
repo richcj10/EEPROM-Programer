@@ -71,7 +71,7 @@ def SendBinFile():
         else:
             print("Bad!")
     except Exception as A: #(Where A is a temporary variable)
-        print(a)
+        print(A)
     finally:
         file.close()
         return CheckPass
@@ -80,11 +80,32 @@ def ProgramMFB():
     global EEPROMDevice
     CheckPass = 0
     try:
-        print(DF.GetSN())
+        SendArray = []
+        SendArray.append('M')
+        print()
         print(DF.GetPart())
-        print(DF.GetDayMonthYear())
-        print(DF.GetIssue())
-        First16 = 0
+        print(DF.GetPart()[0])
+        CleanedString = DF.GetPart()[0].rstrip()
+        ##print(Lenth)
+        ##print(DF.GetDayMonthYear())
+        ##print(DF.GetIssue())
+        Lenth = len(CleanedString)
+        for x in range(Lenth): ##Add P#
+            SendArray.append(CleanedString[x])
+        SendArray.append(DF.GetPart()[1])
+        SendArray.append(DF.GetDayMonthYear()[0]) ##Day
+        SendArray.append(DF.GetDayMonthYear()[1]) ##Month
+        SendArray.append(DF.GetDayMonthYear()[2]) ##Year 20XX
+        SendArray.append(0) ##CRC 
+        SendArray.append(0) ##ERROR
+        SendArray.append(0) ##ERROR CRC
+        CleanedString = DF.GetSN().rstrip()
+        Lenth = len(CleanedString)
+        SendArray.append(Lenth) ##SN Lenth
+        for x in range(Lenth): ##Add P#
+            SendArray.append(CleanedString[x])
+        print(SendArray)
+        ##First16 = 0
         #print(hexify(First16))
         #Second16 = BinFile[16:32]
         #print(hexify(Second16))
@@ -92,18 +113,18 @@ def ProgramMFB():
         #time.sleep(0.5)
         #EEPROMDevice.WritePage(16,Second16)
         #time.sleep(0.5)
-        ReadValue = 0
+        ##ReadValue = 0
         #time.sleep(0.5)
         #ReadValue += EEPROMDevice.ReadPage(8)
         #time.sleep(0.5)
-        print(hexify(ReadValue))
-        if(First16 == ReadValue):
-            print("Good!")
-            CheckPass = 1
-        else:
-            print("Bad!")
+        ##print(hexify(ReadValue))
+        ##if(First16 == ReadValue):
+        ##    print("Good!")
+        ##    CheckPass = 1
+        ##else:
+        ##    print("Bad!")
     except Exception as A: #(Where A is a temporary variable)
-        print(a)
+        print(A)
     finally:
         return CheckPass
         

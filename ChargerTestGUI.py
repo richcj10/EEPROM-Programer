@@ -117,6 +117,9 @@ class PythonGUI():
             DF.SetStatus(1) ## Tell main to start Program process
 
     def MFBProgram(self):
+        if(self.MFB_SN.get() == ''):
+            self.GUIErrorMsgBox("Please add a serial number")
+            return 0
         result = self.GUIAskMsgBox("Do you wish to proceed? \r\n This will erase the contese of the MFB EEPROM memory")
         if(result):
             DF.SetPart(self.MFB_PartNumber.get(),self.MFB_Rev.get())
