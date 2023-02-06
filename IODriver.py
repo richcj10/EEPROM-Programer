@@ -21,13 +21,13 @@ class EEPROM():
     def ReadName(self,Pos,Lenth):
         try:
             if(self.Bit == 16):
-                print("16bit")
+                #print("16bit")
                 device_id = self.port.exchange([0,Pos], Lenth)
-                print(device_id)
+                #print(device_id)
             if(self.Bit == 8):
-                print("8bit")
+                #print("8bit")
                 device_id = self.port.exchange([Pos], Lenth)
-                print(device_id)
+                #print(device_id)
         except:
             print("An exception occurred")
             return 0
@@ -44,10 +44,10 @@ class EEPROM():
     def WriteName(self,Pos,Name):
         new_string = bytes(Name,"ascii")
         if(self.Bit == 16):
-            print("16bit")
+            #print("16bit")
             Init = [0,Pos]
         if(self.Bit == 8):
-            print("8bit")
+            #print("8bit")
             Init = [Pos]
         Init += bytearray(new_string)
         self.port.write(Init)
@@ -56,12 +56,12 @@ class EEPROM():
     def ReadByte(self,Pos):
         try:
             if(self.Bit == 16):
-                print("16bit")
+                #print("16bit")
                 device_id = self.port.exchange([0,Pos], 1)
                 return device_id
             if(self.Bit == 8):
-                print("8bit")
-                device_id = self.port.exchange([0,Pos], 1)
+                #print("8bit")
+                device_id = self.port.exchange([Pos], 1)
                 return device_id
         except:
             print("An exception occurred")
@@ -69,7 +69,7 @@ class EEPROM():
 
     def WriteByte(self,Loc,Byte):
         try:
-            self.port.write(Loc, Byte)
+            self.port.write_to(Loc, Byte)
         except:
             print("An exception occurred")
             return 0
@@ -77,11 +77,11 @@ class EEPROM():
     def ReadPage(self,Pos): ## 8 Bytes at a time? 
         try:
             if(self.Bit == 16):
-                print("16bit")
+                #print("16bit")
                 List = self.port.exchange([0,Pos], 8)
                 return List
             if(self.Bit == 8):
-                print("8bit")
+                #print("8bit")
                 List = self.port.exchange([Pos], 8)
                 return List
         except:
@@ -93,10 +93,10 @@ class EEPROM():
             #print("First List:")
             #print(ByteArray)
             if(self.Bit == 16):
-                print("16bit")
+                #print("16bit")
                 Init = [0,Pos]
             if(self.Bit == 8):
-                print("8bit")
+                #print("8bit")
                 Init = [Pos]
             Init += bytearray(ByteArray)
             self.port.write(Init)

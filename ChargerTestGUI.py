@@ -37,6 +37,7 @@ class PythonGUI():
         #workwindow = str(1024) + "x" + str(768) + "+" + str(int((scrW - 1024) / 2)) + "+" + str(int((scrH - 768) / 2))
         #top1 = tk.Toplevel(root, bg="light blue")
         #top1.geometry(workwindow)
+        root.protocol("WM_DELETE_WINDOW", self.Closing)
         root.geometry('500x500')
         root.title("  Enovate eeprom programer")
         root.attributes("-topmost", 1)  # make sure top1 is on top to start
@@ -62,6 +63,11 @@ class PythonGUI():
         ##self.ChannelConfigStart()
         ##self.TestSettingsStart()
 
+    def Closing(self):
+        global GlobalRoot
+        if(self.GUIAskMsgBox("Do you wish to close?")):
+            DF.SetAppRun(0)
+
     def VarSetup(self):
         t = datetime.datetime.now()
         self.ProgramTime = tk.StringVar()
@@ -78,8 +84,8 @@ class PythonGUI():
         self.MFB_Month=tk.StringVar()
         self.MFB_Year=tk.StringVar()
         self.MFB_Issue=tk.IntVar()
-        self.MFB_PartNumber.set("P00028xx")
-        self.MFB_Rev.set("1")
+        self.MFB_PartNumber.set("P0002850")
+        self.MFB_Rev.set("C")
         self.MFB_Day.set(t.strftime("%d"))
         self.MFB_Month.set(t.strftime("%m"))
         self.MFB_Year.set(t.strftime("%y"))
@@ -91,8 +97,8 @@ class PythonGUI():
         self.PD_Month=tk.StringVar()
         self.PD_Year=tk.StringVar()
         self.PD_Issue=tk.IntVar()
-        self.PD_PartNumber.set("P00028xx")
-        self.PD_Rev.set("1")
+        self.PD_PartNumber.set("P0002893")
+        self.PD_Rev.set("A")
         self.PD_Day.set(t.strftime("%d"))
         self.PD_Month.set(t.strftime("%m"))
         self.PD_Year.set(t.strftime("%y"))

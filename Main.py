@@ -4,7 +4,7 @@ import Define as DF
 from array import array
 import re
 import IODriver as IO
-
+import pickle
 import ChargerTestGUI as GUI
 
 BinFile = []
@@ -81,7 +81,9 @@ def ProgramMFB():
     CheckPass = 0
     try:
         SendArray = []
+        ReturnByte = []
         SendArray.append('M')
+        SendArray.append('1') ##Rev of Data Format
         print()
         print(DF.GetPart())
         print(DF.GetPart()[0])
@@ -93,36 +95,34 @@ def ProgramMFB():
         for x in range(Lenth): ##Add P#
             SendArray.append(CleanedString[x])
         SendArray.append(DF.GetPart()[1])
-        SendArray.append(DF.GetDayMonthYear()[0]) ##Day
-        SendArray.append(DF.GetDayMonthYear()[1]) ##Month
-        SendArray.append(DF.GetDayMonthYear()[2]) ##Year 20XX
-        SendArray.append(0) ##CRC 
-        SendArray.append(0) ##ERROR
-        SendArray.append(0) ##ERROR CRC
+        SendArray.append(str(DF.GetDayMonthYear()[0]).encode()) ##Day
+        SendArray.append(str(DF.GetDayMonthYear()[1]).encode()) ##Month
+        SendArray.append(str(DF.GetDayMonthYear()[2]).encode()) ##Year 20XX
+        SendArray.append(str(0).encode()) ##CRC 
+        SendArray.append(str(0).encode()) ##ERROR
+        SendArray.append(str(0).encode()) ##ERROR CRC
         CleanedString = DF.GetSN().rstrip()
         Lenth = len(CleanedString)
         SendArray.append(Lenth) ##SN Lenth
         for x in range(Lenth): ##Add P#
             SendArray.append(CleanedString[x])
         print(SendArray)
-        ##First16 = 0
-        #print(hexify(First16))
-        #Second16 = BinFile[16:32]
-        #print(hexify(Second16))
-        #EEPROMDevice.WritePage(0,First16)
-        #time.sleep(0.5)
-        #EEPROMDevice.WritePage(16,Second16)
-        #time.sleep(0.5)
-        ##ReadValue = 0
-        #time.sleep(0.5)
-        #ReadValue += EEPROMDevice.ReadPage(8)
-        #time.sleep(0.5)
-        ##print(hexify(ReadValue))
-        ##if(First16 == ReadValue):
-        ##    print("Good!")
-        ##    CheckPass = 1
-        ##else:
-        ##    print("Bad!")
+        SendArrayLenth = len(SendArray)
+        print("sending Bytes = ",SendArrayLenth)
+        for x in range(SendArrayLenth): ##Add P#
+            Data = bytes(str(SendArray[x]), 'utf-8')
+            print("Byte = ",SendArray[x])
+            EEPROMDevice.WriteByte(x,SendArray[x])
+            #time.sleep(0.1)
+
+        time.sleep(0.5)
+        for x in range(SendArrayLenth):
+            Return = EEPROMDevice.ReadByte(x)
+            ReturnByte.append(Return.decode("utf-8"))
+
+        print(ReturnByte)
+        if(SendArray == ReturnByte):
+            print("Good!")
     except Exception as A: #(Where A is a temporary variable)
         print(A)
     finally:
