@@ -57,19 +57,25 @@ class EEPROM():
         try:
             if(self.Bit == 16):
                 #print("16bit")
-                device_id = self.port.exchange([0,Pos], 1)
-                return device_id
+                device_byte = self.port.exchange([0,Pos], 1)
+                return device_byte
             if(self.Bit == 8):
                 #print("8bit")
-                device_id = self.port.exchange([Pos], 1)
-                return device_id
+                device_byte = self.port.exchange([Pos], 1)
+                return device_byte
         except:
             print("An exception occurred")
             return 0
 
-    def WriteByte(self,Loc,Byte):
+    def WriteByte(self,Pos,Byte):
         try:
-            self.port.write_to(Loc, Byte)
+            if(self.Bit == 16):
+                #print("16bit")
+                BA = [0,Pos,Byte]
+            if(self.Bit == 8):
+                #print("8bit")
+                BA = [Pos,Byte]
+            self.port.write(BA)
         except:
             print("An exception occurred")
             return 0

@@ -124,7 +124,7 @@ class PythonGUI():
 
     def MFBProgram(self):
         if(self.MFB_SN.get() == ''):
-            self.GUIErrorMsgBox("Please add a serial number")
+            self.GUIErrorMsgBox("Please add a MFB serial number")
             return 0
         result = self.GUIAskMsgBox("Do you wish to proceed? \r\n This will erase the contese of the MFB EEPROM memory")
         if(result):
@@ -134,18 +134,29 @@ class PythonGUI():
             DF.SetDayMonthYear(self.MFB_Day.get(),self.MFB_Month.get(),self.MFB_Year.get())
             DF.SetIssue(self.MFB_Issue.get())
             DF.SetStatus(2)
-            print("Program Hub")
+            #print("Program Hub")
 
     def PDProgram(self):
+        if(self.PD_SN.get() == ''):
+            self.GUIErrorMsgBox("Please add a PD serial number")
+            return 0
         result = self.GUIAskMsgBox("Do you wish to proceed? \r\n This will erase the contese of the PD EEPROM memory")
         if(result):
-            print("Program Hub")
+            DF.SetPart(self.PD_PartNumber.get(),self.PD_Rev.get())
+            print(self.PD_SN.get())
+            DF.SetSN(str(self.PD_SN.get()))
+            DF.SetDayMonthYear(self.PD_Day.get(),self.PD_Month.get(),self.PD_Year.get())
+            DF.SetIssue(self.PD_Issue.get())
+            DF.SetStatus(3)
+            #print("PD Program")
 
     def MFBRead(self):
-        print("Program Hub")
+        DF.SetStatus(4)
+        #print("MFB Read")
 
     def PDRead(self):
-        print("Program Hub")
+        DF.SetStatus(5)
+        #print("PD Read")
 
     def DCProgram(self):
         print("Program Hub")
@@ -161,7 +172,7 @@ class PythonGUI():
         self.SelectProgram = ttk.Combobox(self.TestControl, values = EpromType, width=10)
         self.SelectProgram.current(0)
         self.SelectProgram.bind("<<ComboboxSelected>>", self.TestMode)
-        self.Status_entry = tk.Entry(self.TestControl,textvariable = self.TestUIStat,state=tk.DISABLED, width=10, disabledbackground="yellow", disabledforeground="black")
+        self.Status_entry = tk.Entry(self.TestControl,textvariable = self.TestUIStat, width=10, justify='center')
         self.Programlbl.grid(padx=5, pady=5, row=0,column=0,sticky='n')
         self.SelectProgram.grid(padx=5, pady=5, row=1,column=0,sticky='n')
         self.Status_entry.grid(padx=5, pady=5, row=2,column=0,sticky='n')
@@ -239,8 +250,8 @@ class PythonGUI():
         self.PD_Day_entry = tk.Entry(self.PDLF,textvariable = self.PD_Day, width = 3)
         self.PD_Month_entry = tk.Entry(self.PDLF,textvariable = self.PD_Month, width = 3)
         self.PD_Year_entry = tk.Entry(self.PDLF,textvariable = self.PD_Year, width = 3)
-        self.PDProgramButton = tk.Button(self.PDLF,anchor=tk.W,command=self.USBProgram,padx=5,pady=5,text=" PD Program")
-        self.PDRedButton = tk.Button(self.PDLF,anchor=tk.W,command=self.MFBRead,padx=5,pady=5,text=" PD Read")
+        self.PDProgramButton = tk.Button(self.PDLF,anchor=tk.W,command=self.PDProgram,padx=5,pady=5,text=" PD Program")
+        self.PDRedButton = tk.Button(self.PDLF,anchor=tk.W,command=self.PDRead,padx=5,pady=5,text=" PD Read")
 
         self.PDPNlbl.grid(padx=5, pady=5, row=0,column=0)
         self.PDRevlbl.grid(padx=5, pady=5, row=1,column=0)

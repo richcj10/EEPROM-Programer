@@ -68,10 +68,13 @@ def SendBinFile():
         if(First16 == ReadValue):
             print("Good!")
             CheckPass = 1
+            GUIHandel.GUIStatus(DF.PASS)
         else:
             print("Bad!")
+            GUIHandel.GUIStatus(DF.FAIL)
     except Exception as A: #(Where A is a temporary variable)
         print(A)
+        GUIHandel.GUIStatus(DF.FAIL)
     finally:
         file.close()
         return CheckPass
@@ -81,48 +84,127 @@ def ProgramMFB():
     CheckPass = 0
     try:
         SendArray = []
-        ReturnByte = []
-        SendArray.append('M')
-        SendArray.append('1') ##Rev of Data Format
-        print()
-        print(DF.GetPart())
-        print(DF.GetPart()[0])
+        SendBytes = b''
+        ReturnByte = b''
+        SendArray.append(int(DF.GetDayMonthYear()[0])) #Day
+        SendArray.append(int(DF.GetDayMonthYear()[1])) #Month
+        SendArray.append(int(DF.GetDayMonthYear()[2])) #Year
+        SendArray.append(int(0)) ##CRC 
+        SendArray.append(int(0)) ##ERROR
+        SendArray.append(int(0)) ##ERROR CRC
+        SendBytes += bytes('M','ascii')
+        SendBytes += b'1'
         CleanedString = DF.GetPart()[0].rstrip()
-        ##print(Lenth)
-        ##print(DF.GetDayMonthYear())
-        ##print(DF.GetIssue())
-        Lenth = len(CleanedString)
-        for x in range(Lenth): ##Add P#
-            SendArray.append(CleanedString[x])
-        SendArray.append(DF.GetPart()[1])
-        SendArray.append(str(DF.GetDayMonthYear()[0]).encode()) ##Day
-        SendArray.append(str(DF.GetDayMonthYear()[1]).encode()) ##Month
-        SendArray.append(str(DF.GetDayMonthYear()[2]).encode()) ##Year 20XX
-        SendArray.append(str(0).encode()) ##CRC 
-        SendArray.append(str(0).encode()) ##ERROR
-        SendArray.append(str(0).encode()) ##ERROR CRC
+        SendBytes += bytes(CleanedString,'ascii')
+        SendBytes += bytes(DF.GetPart()[1],'ascii')
+        SendBytes += bytearray(SendArray)
         CleanedString = DF.GetSN().rstrip()
-        Lenth = len(CleanedString)
-        SendArray.append(Lenth) ##SN Lenth
-        for x in range(Lenth): ##Add P#
-            SendArray.append(CleanedString[x])
-        print(SendArray)
-        SendArrayLenth = len(SendArray)
-        print("sending Bytes = ",SendArrayLenth)
-        for x in range(SendArrayLenth): ##Add P#
-            Data = bytes(str(SendArray[x]), 'utf-8')
-            print("Byte = ",SendArray[x])
-            EEPROMDevice.WriteByte(x,SendArray[x])
-            #time.sleep(0.1)
+        SNLenth = len(CleanedString)
+        SendBytes += bytes(str(SNLenth),'ascii')
+        SendBytes += bytes(CleanedString,'ascii')
+
+        print("Array = ",SendBytes)
+        print("Array Lenth =",len(SendBytes))
+        print(hexify(SendBytes))
+
+        for x in range(len(SendBytes)): ##Add P#
+             #print("Byte = ",SendBytes[x])
+             #print("Loc = ",x)
+             EEPROMDevice.WriteByte(x,SendBytes[x])
+             time.sleep(0.01)
 
         time.sleep(0.5)
-        for x in range(SendArrayLenth):
-            Return = EEPROMDevice.ReadByte(x)
-            ReturnByte.append(Return.decode("utf-8"))
+        for x in range(len(SendBytes)):
+            ReturnByte += EEPROMDevice.ReadByte(x)
+            #ReturnByte.append(Return)
 
         print(ReturnByte)
-        if(SendArray == ReturnByte):
-            print("Good!")
+        if(SendBytes == ReturnByte):
+             print("Good!")
+             GUIHandel.GUIStatus(DF.PASS)
+             CheckPass = 1
+        else:
+            GUIHandel.GUIStatus(DF.FAIL)
+    except Exception as A: #(Where A is a temporary variable)
+        GUIHandel.GUIStatus(DF.FAIL)
+        print(A)
+    finally:
+        return CheckPass
+
+def ProgramPD():
+    global EEPROMDevice
+    CheckPass = 0
+    try:
+        SendArray = []
+        SendBytes = b''
+        ReturnByte = b''
+        SendArray.append(int(DF.GetDayMonthYear()[0])) #Day
+        SendArray.append(int(DF.GetDayMonthYear()[1])) #Month
+        SendArray.append(int(DF.GetDayMonthYear()[2])) #Year
+        SendArray.append(int(0)) ##CRC 
+        SendArray.append(int(0)) ##ERROR
+        SendArray.append(int(0)) ##ERROR CRC
+        SendBytes += bytes('P','ascii')
+        SendBytes += b'1'
+        CleanedString = DF.GetPart()[0].rstrip()
+        SendBytes += bytes(CleanedString,'ascii')
+        SendBytes += bytes(DF.GetPart()[1],'ascii')
+        SendBytes += bytearray(SendArray)
+        CleanedString = DF.GetSN().rstrip()
+        SNLenth = len(CleanedString)
+        SendBytes += bytes(str(SNLenth),'ascii')
+        SendBytes += bytes(CleanedString,'ascii')
+
+        print("Array = ",SendBytes)
+        print("Array Lenth =",len(SendBytes))
+        print(hexify(SendBytes))
+
+        for x in range(len(SendBytes)): ##Add P#
+             #print("Byte = ",SendBytes[x])
+             #print("Loc = ",x)
+             EEPROMDevice.WriteByte(x,SendBytes[x])
+             time.sleep(0.01)
+
+        time.sleep(0.5)
+        for x in range(len(SendBytes)):
+            ReturnByte += EEPROMDevice.ReadByte(x)
+            #ReturnByte.append(Return)
+
+        print(ReturnByte)
+        if(SendBytes == ReturnByte):
+             print("Good!")
+             GUIHandel.GUIStatus(DF.PASS)
+             CheckPass = 1
+        else:
+            GUIHandel.GUIStatus(DF.FAIL)
+    except Exception as A: #(Where A is a temporary variable)
+        GUIHandel.GUIStatus(DF.FAIL)
+        print(A)
+    finally:
+        return CheckPass
+
+def ReadDevice(Type):
+    global EEPROMDevice
+    CheckPass = 0
+    try:
+        ReturnByte = b''
+
+        for x in range(18):
+            ReturnByte += EEPROMDevice.ReadByte(x)
+
+        SerNumb = ReturnByte[17]-48
+        print(SerNumb)
+        for x in range(18,SerNumb+18):
+            print(x)
+            ReturnByte += EEPROMDevice.ReadByte(x)
+
+        print(ReturnByte)
+        print(ReturnByte[0])
+        if((Type == 1) and (ReturnByte[0] == 77)):
+            print("MFB Match")
+        if((Type == 2) and (ReturnByte[0] == 80)):
+            print("PD Match")
+        
     except Exception as A: #(Where A is a temporary variable)
         print(A)
     finally:
@@ -148,8 +230,24 @@ if __name__ == "__main__":
                 GUIHandel.GUIErrorMsgBox(" Failed ")
             DF.SetStatus(0)
         if(DF.GetStatus() == 2):
+            GUIHandel.GUIStatus(DF.PROGRAM)
+            GUI.GlobalRoot.update()
             print("Program MFB")
             ProgramMFB()
+            DF.SetStatus(0)
+        if(DF.GetStatus() == 3):
+            GUIHandel.GUIStatus(DF.PROGRAM)
+            GUI.GlobalRoot.update()
+            print("Program PD")
+            ProgramPD()
+            DF.SetStatus(0)
+        if(DF.GetStatus() == 4):
+            print("Read MFB")
+            ReadDevice(1)
+            DF.SetStatus(0)
+        if(DF.GetStatus() == 5):
+            print("Read PD")
+            ReadDevice(2)
             DF.SetStatus(0)
         if(DF.GetUpdateModeGUI()):
             DF.SetUpdateModeGUI(0)
