@@ -6,6 +6,7 @@ import re
 import IODriver as IO
 import pickle
 import ChargerTestGUI as GUI
+import EEPROMMap as EM
 
 BinFile = []
 AppRunning = 1
@@ -80,49 +81,91 @@ def ProgramMFB():
     global EEPROMDevice
     CheckPass = 0
     try:
-        SendArray = []
         ReturnByte = []
-        SendArray.append('M')
-        SendArray.append('1') ##Rev of Data Format
-        print()
-        print(DF.GetPart())
-        print(DF.GetPart()[0])
-        CleanedString = DF.GetPart()[0].rstrip()
-        ##print(Lenth)
-        ##print(DF.GetDayMonthYear())
-        ##print(DF.GetIssue())
-        Lenth = len(CleanedString)
-        for x in range(Lenth): ##Add P#
-            SendArray.append(CleanedString[x])
-        SendArray.append(DF.GetPart()[1])
-        SendArray.append(str(DF.GetDayMonthYear()[0]).encode()) ##Day
-        SendArray.append(str(DF.GetDayMonthYear()[1]).encode()) ##Month
-        SendArray.append(str(DF.GetDayMonthYear()[2]).encode()) ##Year 20XX
-        SendArray.append(str(0).encode()) ##CRC 
-        SendArray.append(str(0).encode()) ##ERROR
-        SendArray.append(str(0).encode()) ##ERROR CRC
-        CleanedString = DF.GetSN().rstrip()
-        Lenth = len(CleanedString)
-        SendArray.append(Lenth) ##SN Lenth
-        for x in range(Lenth): ##Add P#
-            SendArray.append(CleanedString[x])
+        EM.SetEEPROM(EM.MFB)
+        EM.StartEEPROMMap() 
+        EM.PackatizeEEPROMDF()
+        SendArray = EM.ReturnEEPROMMap()
+        Size  = EM.ReturnEEPROMMapSize()
         print(SendArray)
-        SendArrayLenth = len(SendArray)
-        print("sending Bytes = ",SendArrayLenth)
-        for x in range(SendArrayLenth): ##Add P#
-            Data = bytes(str(SendArray[x]), 'utf-8')
-            print("Byte = ",SendArray[x])
-            EEPROMDevice.WriteByte(x,SendArray[x])
+        print(Size)
+
+        for x in range(Size): ##Add P#
+            bytes_val = int(SendArray[x]).to_bytes(1, 'big')
+            #print("Byte = ",Data)
+            #print("x = ",x)
+            EEPROMDevice.WriteByte(x,bytes_val)
             #time.sleep(0.1)
 
         time.sleep(0.5)
-        for x in range(SendArrayLenth):
+        for x in range(Size):
             Return = EEPROMDevice.ReadByte(x)
-            ReturnByte.append(Return.decode("utf-8"))
+            ReturnByte.append(Return[0])
 
-        print(ReturnByte)
-        if(SendArray == ReturnByte):
+        Returned = bytearray(ReturnByte)
+        print(Returned)
+        if(SendArray == Returned):
             print("Good!")
+            CheckPass = 1
+    except Exception as A: #(Where A is a temporary variable)
+        print(A)
+    finally:
+        return CheckPass
+
+def ReadMFB():
+    global EEPROMDevice
+    CheckPass = 0
+    try:
+        EM.SetEEPROM(EM.MFB)
+        EM.StartEEPROMMap() 
+
+        ReturnByte = []
+        for x in range(18):
+            Return = EEPROMDevice.ReadByte(x)
+            ReturnByte.append(Return[0])
+
+        ##nEED TO LOOK AT BYTE, Check Lenth
+        Returned = bytearray(ReturnByte)
+        EM.SetEEPROMFile(Returned)
+        result = EM.EEPROMMapValidate()
+        if(result):
+            EM.SaveToDF()
+            CheckPass = 1
+    except Exception as A: #(Where A is a temporary variable)
+        print(A)
+    finally:
+        return CheckPass
+
+def ProgramPD():
+    global EEPROMDevice
+    CheckPass = 0
+    try:
+        ReturnByte = []
+        EM.SetEEPROM(EM.PD)
+        EM.StartEEPROMMap() 
+        EM.PackatizeEEPROMDF()
+        SendArray = EM.ReturnEEPROMMap()
+        Size  = EM.ReturnEEPROMMapSize()
+        print(SendArray)
+        print(Size)
+
+        for x in range(Size): ##Add P#
+            bytes_val = int(SendArray[x]).to_bytes(1, 'big')
+            #print("Byte = ",Data)
+            #print("x = ",x)
+            EEPROMDevice.WriteByte(x,bytes_val)
+            #time.sleep(0.1)
+
+        time.sleep(0.5)
+        for x in range(Size):
+            Return = EEPROMDevice.ReadByte(x)
+            ReturnByte.append(Return[0])
+
+        Returned = bytearray(ReturnByte)
+        print(Returned)
+        if(SendArray == Returned):
+            print("Good!")
+            CheckPass = 1
     except Exception as A: #(Where A is a temporary variable)
         print(A)
     finally:
@@ -141,6 +184,7 @@ if __name__ == "__main__":
         if(DF.GetStatus() == 1):
             print("Program USB Hub")
             GUIHandel.GUIStatus(DF.PROGRAM)
+            GUI.GlobalRoot.update()
             if(SendBinFile()):
                 GUIHandel.GUIStatus(DF.PASS)
             else:
@@ -148,8 +192,23 @@ if __name__ == "__main__":
                 GUIHandel.GUIErrorMsgBox(" Failed ")
             DF.SetStatus(0)
         if(DF.GetStatus() == 2):
-            print("Program MFB")
-            ProgramMFB()
+            GUIHandel.GUIStatus(DF.PROGRAM)
+            GUI.GlobalRoot.update()
+            Process = ProgramMFB()
+            if(Process == 1):
+                print("Pass")
+                GUIHandel.GUIStatus(DF.PASS)
+            else:
+                GUIHandel.GUIStatus(DF.FAIL)
+            DF.SetStatus(0)
+        if(DF.GetStatus() == 3):
+            GUIHandel.GUIStatus(DF.PROGRAM)
+            GUI.GlobalRoot.update()
+            Process = ProgramPD()
+            if(Process == 1):
+                GUIHandel.GUIStatus(DF.PASS)
+            else:
+                GUIHandel.GUIStatus(DF.FAIL)
             DF.SetStatus(0)
         if(DF.GetUpdateModeGUI()):
             DF.SetUpdateModeGUI(0)

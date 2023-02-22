@@ -86,6 +86,7 @@ class PythonGUI():
         self.MFB_Issue=tk.IntVar()
         self.MFB_PartNumber.set("P0002850")
         self.MFB_Rev.set("C")
+        self.MFB_SN.set("Hi")
         self.MFB_Day.set(t.strftime("%d"))
         self.MFB_Month.set(t.strftime("%m"))
         self.MFB_Year.set(t.strftime("%y"))
@@ -129,26 +130,32 @@ class PythonGUI():
         result = self.GUIAskMsgBox("Do you wish to proceed? \r\n This will erase the contese of the MFB EEPROM memory")
         if(result):
             DF.SetPart(self.MFB_PartNumber.get(),self.MFB_Rev.get())
-            print(self.MFB_SN.get())
+            #print(self.MFB_SN.get())
             DF.SetSN(str(self.MFB_SN.get()))
             DF.SetDayMonthYear(self.MFB_Day.get(),self.MFB_Month.get(),self.MFB_Year.get())
             DF.SetIssue(self.MFB_Issue.get())
             DF.SetStatus(2)
-            print("Program Hub")
+            #print("Program Hub")
 
     def PDProgram(self):
         result = self.GUIAskMsgBox("Do you wish to proceed? \r\n This will erase the contese of the PD EEPROM memory")
         if(result):
-            print("Program Hub")
+            DF.SetPart(self.PD_PartNumber.get(),self.PD_Rev.get())
+            #print(self.MFB_SN.get())
+            DF.SetSN(str(self.PD_SN.get()))
+            DF.SetDayMonthYear(self.PD_Day.get(),self.PD_Month.get(),self.PD_Year.get())
+            DF.SetIssue(self.PD_Issue.get())
+            DF.SetStatus(3)
+            #print("Program PD")
 
     def MFBRead(self):
-        print("Program Hub")
+        print("MRB Read")
 
     def PDRead(self):
-        print("Program Hub")
+        print("PD Read")
 
     def DCProgram(self):
-        print("Program Hub")
+        print("Med Bin Program")
 
     def MainWindowStart(self):
 
@@ -161,7 +168,7 @@ class PythonGUI():
         self.SelectProgram = ttk.Combobox(self.TestControl, values = EpromType, width=10)
         self.SelectProgram.current(0)
         self.SelectProgram.bind("<<ComboboxSelected>>", self.TestMode)
-        self.Status_entry = tk.Entry(self.TestControl,textvariable = self.TestUIStat,state=tk.DISABLED, width=10, disabledbackground="yellow", disabledforeground="black")
+        self.Status_entry = tk.Entry(self.TestControl,textvariable = self.TestUIStat, width=15, justify="center")
         self.Programlbl.grid(padx=5, pady=5, row=0,column=0,sticky='n')
         self.SelectProgram.grid(padx=5, pady=5, row=1,column=0,sticky='n')
         self.Status_entry.grid(padx=5, pady=5, row=2,column=0,sticky='n')
@@ -239,8 +246,8 @@ class PythonGUI():
         self.PD_Day_entry = tk.Entry(self.PDLF,textvariable = self.PD_Day, width = 3)
         self.PD_Month_entry = tk.Entry(self.PDLF,textvariable = self.PD_Month, width = 3)
         self.PD_Year_entry = tk.Entry(self.PDLF,textvariable = self.PD_Year, width = 3)
-        self.PDProgramButton = tk.Button(self.PDLF,anchor=tk.W,command=self.USBProgram,padx=5,pady=5,text=" PD Program")
-        self.PDRedButton = tk.Button(self.PDLF,anchor=tk.W,command=self.MFBRead,padx=5,pady=5,text=" PD Read")
+        self.PDProgramButton = tk.Button(self.PDLF,anchor=tk.W,command=self.PDProgram,padx=5,pady=5,text=" PD Program")
+        self.PDRedButton = tk.Button(self.PDLF,anchor=tk.W,command=self.PDRead,padx=5,pady=5,text=" PD Read")
 
         self.PDPNlbl.grid(padx=5, pady=5, row=0,column=0)
         self.PDRevlbl.grid(padx=5, pady=5, row=1,column=0)
@@ -262,19 +269,15 @@ class PythonGUI():
 
     def GUIStatus(self, Stat):
         if(Stat == DF.DEVICEOK):
-            print("D OK")
             self.Status_entry.config(bg = "#0747ea") 
             self.TestUIStat.set("Ready")
         if(Stat == DF.PROGRAM):
-            print("Prog ")
             self.Status_entry.config(bg = "#f0fc0a") 
             self.TestUIStat.set("Run")
         if(Stat == DF.PASS):
-            print("pass")
             self.Status_entry.config(bg = "#31ff11")
             self.TestUIStat.set("PASS")
         if(Stat == DF.FAIL):
-            print("fail")
             self.Status_entry.config(bg = "#ef0e33")
             self.TestUIStat.set("FAIL")
 

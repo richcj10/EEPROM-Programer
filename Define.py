@@ -2,7 +2,7 @@
 
 
 PASS = 1
-FAIL = 2
+FAIL = 0
 
 TRUE = 1
 FALSE = 0
