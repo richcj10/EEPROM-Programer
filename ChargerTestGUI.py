@@ -38,7 +38,7 @@ class PythonGUI():
         #top1 = tk.Toplevel(root, bg="light blue")
         #top1.geometry(workwindow)
         root.protocol("WM_DELETE_WINDOW", self.Closing)
-        root.geometry('500x500')
+        root.geometry('850x450')
         root.title("  Enovate eeprom programer")
         root.attributes("-topmost", 1)  # make sure top1 is on top to start
         root.update()  # but don't leave it locked in place
@@ -85,8 +85,8 @@ class PythonGUI():
         self.MFB_Year=tk.StringVar()
         self.MFB_Issue=tk.IntVar()
         self.MFB_PartNumber.set("P0002850")
-        self.MFB_Rev.set("C")
-        self.MFB_SN.set("Hi")
+        self.MFB_Rev.set("1")
+        #self.MFB_SN.set("Hi")
         self.MFB_Day.set(t.strftime("%d"))
         self.MFB_Month.set(t.strftime("%m"))
         self.MFB_Year.set(t.strftime("%y"))
@@ -99,10 +99,23 @@ class PythonGUI():
         self.PD_Year=tk.StringVar()
         self.PD_Issue=tk.IntVar()
         self.PD_PartNumber.set("P0002893")
-        self.PD_Rev.set("A")
+        self.PD_Rev.set("1")
         self.PD_Day.set(t.strftime("%d"))
         self.PD_Month.set(t.strftime("%m"))
         self.PD_Year.set(t.strftime("%y"))
+
+        self.MB_PartNumber=tk.StringVar()
+        self.MB_Rev=tk.StringVar()
+        self.MB_SN=tk.StringVar()
+        self.MB_Day=tk.StringVar()
+        self.MB_Month=tk.StringVar()
+        self.MB_Year=tk.StringVar()
+        self.MB_Issue=tk.IntVar()
+        self.MB_PartNumber.set("P0002893")
+        self.MB_Rev.set("1")
+        self.MB_Day.set(t.strftime("%d"))
+        self.MB_Month.set(t.strftime("%m"))
+        self.MB_Year.set(t.strftime("%y"))
 
     def GetUSBBin(self):
         global GlobalRoot
@@ -151,14 +164,31 @@ class PythonGUI():
             DF.SetStatus(3)
             #print("Program PD")
 
+    def MBProgram(self):
+        if(self.PD_SN.get() == ''):
+            self.GUIErrorMsgBox("Please add a MedBin serial number")
+            return 0
+        result = self.GUIAskMsgBox("Do you wish to proceed? \r\n This will erase the contese of the MedBin EEPROM memory")
+        if(result):
+            DF.SetPart(self.PD_PartNumber.get(),self.PD_Rev.get())
+            #print(self.MFB_SN.get())
+            DF.SetSN(str(self.PD_SN.get()))
+            DF.SetDayMonthYear(self.PD_Day.get(),self.PD_Month.get(),self.PD_Year.get())
+            DF.SetIssue(self.PD_Issue.get())
+            DF.SetStatus(4)
+            print("Med Bin Program")
+
     def MFBRead(self):
-        print("MRB Read")
+        DF.SetStatus(5)
+        print("MFB Read")
 
     def PDRead(self):
+        DF.SetStatus(6)
         print("PD Read")
 
-    def DCProgram(self):
-        print("Med Bin Program")
+    def MBRead(self):
+        DF.SetStatus(7)
+        print("MB Read")
 
     def MainWindowStart(self):
 
@@ -235,7 +265,7 @@ class PythonGUI():
         self.MFBProgramButton.grid(padx=5, pady=5, row=3,column=3)
         ####PD
         self.PDLF = tk.LabelFrame(self.TestOutput, text="  Program PD EEPROM ", relief=tk.GROOVE)
-        self.PDLF.grid(padx=5, pady=5, row=3,column=0,columnspan = 2)
+        self.PDLF.grid(padx=5, pady=5, row=1,column=2,columnspan = 2)
         self.PDPNlbl = tk.Label(self.PDLF, text="Part Number ")
         self.PDRevlbl = tk.Label(self.PDLF, text="Revison ")
         self.PDSNlbl = tk.Label(self.PDLF, text="Serial Number")
@@ -249,8 +279,6 @@ class PythonGUI():
         self.PD_Day_entry = tk.Entry(self.PDLF,textvariable = self.PD_Day, width = 3)
         self.PD_Month_entry = tk.Entry(self.PDLF,textvariable = self.PD_Month, width = 3)
         self.PD_Year_entry = tk.Entry(self.PDLF,textvariable = self.PD_Year, width = 3)
-        self.PDProgramButton = tk.Button(self.PDLF,anchor=tk.W,command=self.PDProgram,padx=5,pady=5,text=" PD Program")
-        self.PDRedButton = tk.Button(self.PDLF,anchor=tk.W,command=self.PDRead,padx=5,pady=5,text=" PD Read")
         self.PDProgramButton = tk.Button(self.PDLF,anchor=tk.W,command=self.PDProgram,padx=5,pady=5,text=" PD Program")
         self.PDRedButton = tk.Button(self.PDLF,anchor=tk.W,command=self.PDRead,padx=5,pady=5,text=" PD Read")
 
@@ -268,6 +296,39 @@ class PythonGUI():
         self.PD_Year_entry.grid(padx=5, pady=5, row=2,column=3)
         self.PDRedButton.grid(padx=5, pady=5, row=3,column=0)
         self.PDProgramButton.grid(padx=5, pady=5, row=3,column=3)
+        ####MedBin
+        self.MBLF = tk.LabelFrame(self.TestOutput, text="  Program MedBin EEPROM ", relief=tk.GROOVE)
+        self.MBLF.grid(padx=5, pady=5, row=2,column=2,columnspan = 2)
+        self.MBPNlbl = tk.Label(self.MBLF, text="Part Number ")
+        self.MBRevlbl = tk.Label(self.MBLF, text="Revison ")
+        self.MBSNlbl = tk.Label(self.MBLF, text="Serial Number")
+        self.MBDaylbl = tk.Label(self.MBLF, text="Day")
+        self.MBMonthlbl = tk.Label(self.MBLF, text="Month")
+        self.MBYearlbl = tk.Label(self.MBLF, text="Year")
+        
+        self.MB_PN_entry = tk.Entry(self.MBLF,textvariable = self.MB_PartNumber, width = 8)
+        self.MB_BR_entry = tk.Entry(self.MBLF,textvariable = self.MB_Rev, width = 2)
+        self.MB_SN_entry = tk.Entry(self.MBLF,textvariable = self.MB_SN, width = 12)
+        self.MB_Day_entry = tk.Entry(self.MBLF,textvariable = self.MB_Day, width = 3)
+        self.MB_Month_entry = tk.Entry(self.MBLF,textvariable = self.MB_Month, width = 3)
+        self.MB_Year_entry = tk.Entry(self.MBLF,textvariable = self.MB_Year, width = 3)
+        self.MBProgramButton = tk.Button(self.MBLF,anchor=tk.W,command=self.MBProgram,padx=5,pady=5,text=" MedBin Program")
+        self.MBRedButton = tk.Button(self.MBLF,anchor=tk.W,command=self.MBRead,padx=5,pady=5,text=" MedBin Read")
+
+        self.MBPNlbl.grid(padx=5, pady=5, row=0,column=0)
+        self.MBRevlbl.grid(padx=5, pady=5, row=1,column=0)
+        self.MBSNlbl.grid(padx=5, pady=5, row=2,column=0)
+        self.MB_PN_entry.grid(padx=5, pady=5, row=0,column=1)
+        self.MB_BR_entry.grid(padx=5, pady=5, row=1,column=1)
+        self.MB_SN_entry.grid(padx=5, pady=5, row=2,column=1)
+        self.MBDaylbl.grid(padx=5, pady=5, row=0,column=2)
+        self.MBMonthlbl.grid(padx=5, pady=5, row=1,column=2)
+        self.MBYearlbl.grid(padx=5, pady=5, row=2,column=2)
+        self.MB_Day_entry.grid(padx=5, pady=5, row=0,column=3)
+        self.MB_Month_entry.grid(padx=5, pady=5, row=1,column=3)
+        self.MB_Year_entry.grid(padx=5, pady=5, row=2,column=3)
+        self.MBRedButton.grid(padx=5, pady=5, row=3,column=0)
+        self.MBProgramButton.grid(padx=5, pady=5, row=3,column=3)
 
     def GUIShutdown(self):
         DF.SetAppRun(0)

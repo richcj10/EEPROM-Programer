@@ -74,7 +74,6 @@ def StartEEPROMMap():
 def PackatizeEEPROMDF():
     global eepromMap
     global eepromType
-    print("hi")
     eepromMap.output_array = bytearray(str.encode(eepromMap.Type))
     eepromMap.output_array.extend(eepromMap.Rev.encode('utf-8')) ##Rev of Data Format
     CleanedString = DF.GetPart()[0].rstrip()

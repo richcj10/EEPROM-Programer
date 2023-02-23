@@ -22,10 +22,6 @@ def onExit():
 def hexify(s):
     return "b'" + re.sub(r'.', lambda m: f'\\x{ord(m.group(0)):02x}', s.decode('latin1')) + "'"
 
-##This is the map function to get test time to 0-100% for the GUI task bar. 
-def mapval(x,in_min,in_max):
-  return (x - in_min) * (100) / (in_max - in_min)
-
 def SetTestMode():
     global EEPROMDevice
     mode = DF.GetTestModeGUI()
@@ -80,6 +76,41 @@ def SendBinFile():
         file.close()
         return CheckPass
 
+def ProgramPD():
+    global EEPROMDevice
+    CheckPass = 0
+    try:
+        ReturnByte = []
+        EM.SetEEPROM(EM.PD)
+        EM.StartEEPROMMap() 
+        EM.PackatizeEEPROMDF()
+        SendArray = EM.ReturnEEPROMMap()
+        Size  = EM.ReturnEEPROMMapSize()
+        print(SendArray)
+        print(Size)
+
+        for x in range(Size): ##Add P#
+            bytes_val = int(SendArray[x]).to_bytes(1, 'big')
+            #print("Byte = ",Data)
+            #print("x = ",x)
+            EEPROMDevice.WriteByte(x,bytes_val)
+            #time.sleep(0.1)
+
+        time.sleep(0.5)
+        for x in range(Size):
+            Return = EEPROMDevice.ReadByte(x)
+            ReturnByte.append(Return[0])
+
+        Returned = bytearray(ReturnByte)
+        print(Returned)
+        if(SendArray == Returned):
+            print("Good!")
+            CheckPass = 1
+    except Exception as A: #(Where A is a temporary variable)
+        print(A)
+    finally:
+        return CheckPass
+
 def ProgramMFB():
     global EEPROMDevice
     CheckPass = 0
@@ -115,36 +146,12 @@ def ProgramMFB():
     finally:
         return CheckPass
 
-def ReadMFB():
-    global EEPROMDevice
-    CheckPass = 0
-    try:
-        EM.SetEEPROM(EM.MFB)
-        EM.StartEEPROMMap() 
-
-        ReturnByte = []
-        for x in range(18):
-            Return = EEPROMDevice.ReadByte(x)
-            ReturnByte.append(Return[0])
-
-        ##nEED TO LOOK AT BYTE, Check Lenth
-        Returned = bytearray(ReturnByte)
-        EM.SetEEPROMFile(Returned)
-        result = EM.EEPROMMapValidate()
-        if(result):
-            EM.SaveToDF()
-            CheckPass = 1
-    except Exception as A: #(Where A is a temporary variable)
-        print(A)
-    finally:
-        return CheckPass
-
-def ProgramPD():
+def ProgramMedBin():
     global EEPROMDevice
     CheckPass = 0
     try:
         ReturnByte = []
-        EM.SetEEPROM(EM.PD)
+        EM.SetEEPROM(EM.MEDBIN)
         EM.StartEEPROMMap() 
         EM.PackatizeEEPROMDF()
         SendArray = EM.ReturnEEPROMMap()
@@ -173,6 +180,34 @@ def ProgramPD():
         print(A)
     finally:
         return CheckPass
+
+def ReadDevice(Type):
+    global EEPROMDevice
+    CheckPass = 0
+    try:
+        ReturnByte = b''
+
+        for x in range(18):
+            ReturnByte += EEPROMDevice.ReadByte(x)
+
+        SerNumb = ReturnByte[17]-48
+        print(SerNumb)
+        for x in range(18,SerNumb+18):
+            print(x)
+            ReturnByte += EEPROMDevice.ReadByte(x)
+
+        print(ReturnByte)
+        print(ReturnByte[0])
+        if((Type == 1) and (ReturnByte[0] == 77)):
+            print("MFB Match")
+        if((Type == 2) and (ReturnByte[0] == 80)):
+            print("PD Match")
+    except Exception as A: #(Where A is a temporary variable)
+        print(A)
+    finally:
+        return CheckPass
+
+
         
 if __name__ == "__main__":
     DF.initialize()  ##Set up Data Dictonary, (DF)
@@ -213,19 +248,26 @@ if __name__ == "__main__":
             else:
                 GUIHandel.GUIStatus(DF.FAIL)
             DF.SetStatus(0)
-        if(DF.GetStatus() == 3):
+        if(DF.GetStatus() == 4):
             GUIHandel.GUIStatus(DF.PROGRAM)
             GUI.GlobalRoot.update()
-            print("Program PD")
-            ProgramPD()
+            Process = ProgramMedBin()
+            if(Process == 1):
+                GUIHandel.GUIStatus(DF.PASS)
+            else:
+                GUIHandel.GUIStatus(DF.FAIL)
             DF.SetStatus(0)
-        if(DF.GetStatus() == 4):
+        if(DF.GetStatus() == 5):
             print("Read MFB")
             ReadDevice(1)
             DF.SetStatus(0)
-        if(DF.GetStatus() == 5):
+        if(DF.GetStatus() == 6):
             print("Read PD")
             ReadDevice(2)
+            DF.SetStatus(0)
+        if(DF.GetStatus() == 7):
+            print("Read MB")
+            ReadDevice(3)
             DF.SetStatus(0)
         if(DF.GetUpdateModeGUI()):
             DF.SetUpdateModeGUI(0)
