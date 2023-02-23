@@ -117,6 +117,21 @@ def SetEEPROMFile(Array):
     global eepromMap
     eepromMap.output_array = Array
 
+def EEPROMMapValidate():
+    Validate = 0
+    try:
+        print("Starting to deconstruct")
+
+        if(CRC == CRC):
+            Validate = 1
+    except Exception as A: #(Where A is a temporary variable)
+        print(A)
+    finally:
+        return Validate
+
+def SaveToDF():
+    print("Moving Struct to DF") 
+
 def crc_poly(data, n, poly, crc=0, ref_in=False, ref_out=False, xor_out=0):
     g = 1 << n | poly  # Generator polynomial
 

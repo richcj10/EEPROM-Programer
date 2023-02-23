@@ -57,21 +57,42 @@ class EEPROM():
         try:
             if(self.Bit == 16):
                 #print("16bit")
+<<<<<<< HEAD
                 device_Pkt = self.port.exchange([0,Pos], 1)
                 return device_Pkt
             if(self.Bit == 8):
                 #print("8bit")
                 device_Pkt = self.port.exchange([Pos], 1)
                 return device_Pkt
+=======
+                device_byte = self.port.exchange([0,Pos], 1)
+                return device_byte
+            if(self.Bit == 8):
+                #print("8bit")
+                device_byte = self.port.exchange([Pos], 1)
+                return device_byte
+>>>>>>> 47ca287ef46b0204294b70ada4295089bd158d09
         except:
             print("An exception occurred")
             return 0
 
-    def WriteByte(self,Loc,Byte):
+    def WriteByte(self,Pos,Byte):
         try:
+<<<<<<< HEAD
             self.port.write_to(Loc, Byte)
         except Exception as A: #(Where A is a temporary variable)
             print(A)
+=======
+            if(self.Bit == 16):
+                #print("16bit")
+                BA = [0,Pos,Byte]
+            if(self.Bit == 8):
+                #print("8bit")
+                BA = [Pos,Byte]
+            self.port.write(BA)
+        except:
+            print("An exception occurred")
+>>>>>>> 47ca287ef46b0204294b70ada4295089bd158d09
             return 0
 
     def ReadPage(self,Pos): ## 8 Bytes at a time? 

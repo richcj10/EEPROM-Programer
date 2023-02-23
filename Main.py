@@ -69,10 +69,13 @@ def SendBinFile():
         if(First16 == ReadValue):
             print("Good!")
             CheckPass = 1
+            GUIHandel.GUIStatus(DF.PASS)
         else:
             print("Bad!")
+            GUIHandel.GUIStatus(DF.FAIL)
     except Exception as A: #(Where A is a temporary variable)
         print(A)
+        GUIHandel.GUIStatus(DF.FAIL)
     finally:
         file.close()
         return CheckPass
@@ -209,6 +212,20 @@ if __name__ == "__main__":
                 GUIHandel.GUIStatus(DF.PASS)
             else:
                 GUIHandel.GUIStatus(DF.FAIL)
+            DF.SetStatus(0)
+        if(DF.GetStatus() == 3):
+            GUIHandel.GUIStatus(DF.PROGRAM)
+            GUI.GlobalRoot.update()
+            print("Program PD")
+            ProgramPD()
+            DF.SetStatus(0)
+        if(DF.GetStatus() == 4):
+            print("Read MFB")
+            ReadDevice(1)
+            DF.SetStatus(0)
+        if(DF.GetStatus() == 5):
+            print("Read PD")
+            ReadDevice(2)
             DF.SetStatus(0)
         if(DF.GetUpdateModeGUI()):
             DF.SetUpdateModeGUI(0)

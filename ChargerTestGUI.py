@@ -125,7 +125,7 @@ class PythonGUI():
 
     def MFBProgram(self):
         if(self.MFB_SN.get() == ''):
-            self.GUIErrorMsgBox("Please add a serial number")
+            self.GUIErrorMsgBox("Please add a MFB serial number")
             return 0
         result = self.GUIAskMsgBox("Do you wish to proceed? \r\n This will erase the contese of the MFB EEPROM memory")
         if(result):
@@ -135,9 +135,12 @@ class PythonGUI():
             DF.SetDayMonthYear(self.MFB_Day.get(),self.MFB_Month.get(),self.MFB_Year.get())
             DF.SetIssue(self.MFB_Issue.get())
             DF.SetStatus(2)
-            #print("Program Hub")
+            ##print("Program Hub")
 
     def PDProgram(self):
+        if(self.PD_SN.get() == ''):
+            self.GUIErrorMsgBox("Please add a PD serial number")
+            return 0
         result = self.GUIAskMsgBox("Do you wish to proceed? \r\n This will erase the contese of the PD EEPROM memory")
         if(result):
             DF.SetPart(self.PD_PartNumber.get(),self.PD_Rev.get())
@@ -246,6 +249,8 @@ class PythonGUI():
         self.PD_Day_entry = tk.Entry(self.PDLF,textvariable = self.PD_Day, width = 3)
         self.PD_Month_entry = tk.Entry(self.PDLF,textvariable = self.PD_Month, width = 3)
         self.PD_Year_entry = tk.Entry(self.PDLF,textvariable = self.PD_Year, width = 3)
+        self.PDProgramButton = tk.Button(self.PDLF,anchor=tk.W,command=self.PDProgram,padx=5,pady=5,text=" PD Program")
+        self.PDRedButton = tk.Button(self.PDLF,anchor=tk.W,command=self.PDRead,padx=5,pady=5,text=" PD Read")
         self.PDProgramButton = tk.Button(self.PDLF,anchor=tk.W,command=self.PDProgram,padx=5,pady=5,text=" PD Program")
         self.PDRedButton = tk.Button(self.PDLF,anchor=tk.W,command=self.PDRead,padx=5,pady=5,text=" PD Read")
 
