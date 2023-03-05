@@ -9,14 +9,51 @@ import time
 DeviceAddress = 0x50
 AddressSpace = 16
 
+
+def set_bit(value, bit):
+    return value | (1<<bit)
+
+def clear_bit(value, bit):
+    return value & ~(1<<bit)
+
+
 class EEPROM():
 
     def __init__(self):
         self._i2c = I2cController()
         self._i2c.configure('ftdi://ftdi:232h/1')
+        self.gpio = self._i2c.get_gpio()
+        self.gpio.set_direction(240,240)
         self.DA = DeviceAddress
         self.Bit = AddressSpace
         self.port = self._i2c.get_port(self.DA)
+
+    def SetPower(self,ctrl):
+        pins = self.gpio.read(True)
+        if(ctrl == 1):
+            pins = set_bit(pins,7)
+        else:
+            pins = clear_bit(pins,7)
+
+        self.gpio.write(pins)
+
+    def SetAllert(self,ctrl):
+        pins = self.gpio.read(True)
+        if(ctrl == 1):
+            pins = set_bit(pins,6)
+        else:
+            pins = clear_bit(pins,6)
+
+        self.gpio.write(pins)
+
+    def SetUSBReset(self,ctrl):
+        pins = self.gpio.read(True)
+        if(ctrl == 1):
+            pins = set_bit(pins,5)
+        else:
+            pins = clear_bit(pins,5)
+
+        self.gpio.write(pins)
 
     def ReadName(self,Pos,Lenth):
         try:
@@ -107,6 +144,8 @@ class EEPROM():
 
 
 #Device = EEPROM()
+#Device.SetAllert(0)
+#Device.SetPower(1)
 #Device.WriteName(0,"RickIsCool")
 #Device.ReadName(0,10)
 ##for i in range(9):

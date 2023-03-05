@@ -17,6 +17,8 @@ GlobalRoot = 0
 TestModeGUI = 0
 EpromType = ["USB hub","PD","MFB","Drawer"]
 
+PDIssue = {'VR': 0, 'SC': 0, 'Fan': 0, 'Ch1': 0, 'Ch2': 0, 'Ch3': 0}
+
 def DataSetter(TestArrayIN, TestChannelCount):
     global TestConfigArrayGUI
     global ChannelCountGUI

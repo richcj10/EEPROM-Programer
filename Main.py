@@ -35,12 +35,19 @@ def TestI2C():
         EEPROMDevice = IO.EEPROM()
         DF.SetDeviceDetected(1)
         print("I2C Device OK")
+        EEPROMDevice.SetPower(0)
+        EEPROMDevice.SetAllert(0)
+        EEPROMDevice.SetUSBReset(0)
     except:
         print("No I2C Device?")
 
 def SendBinFile():
     global EEPROMDevice
     CheckPass = 0
+    EEPROMDevice.SetPower(1)
+    time.sleep(0.5)
+    EEPROMDevice.SetUSBReset(1)
+    EEPROMDevice.SetAllert(1)
     try:
         FilePath = DF.GetBinFile()
         file = open(FilePath,"rb")
@@ -74,11 +81,15 @@ def SendBinFile():
         GUIHandel.GUIStatus(DF.FAIL)
     finally:
         file.close()
+        EEPROMDevice.SetPower(0)
+        EEPROMDevice.SetAllert(0)
+        EEPROMDevice.SetUSBReset(0)
         return CheckPass
 
 def ProgramPD():
     global EEPROMDevice
     CheckPass = 0
+    EEPROMDevice.SetPower(1)
     try:
         ReturnByte = []
         EM.SetEEPROM(EM.PD)
@@ -88,7 +99,7 @@ def ProgramPD():
         Size  = EM.ReturnEEPROMMapSize()
         print(SendArray)
         print(Size)
-
+        EEPROMDevice.SetAllert(1)
         for x in range(Size): ##Add P#
             bytes_val = int(SendArray[x]).to_bytes(1, 'big')
             #print("Byte = ",Data)
@@ -109,11 +120,14 @@ def ProgramPD():
     except Exception as A: #(Where A is a temporary variable)
         print(A)
     finally:
+        EEPROMDevice.SetPower(0)
+        EEPROMDevice.SetAllert(0)
         return CheckPass
 
 def ProgramMFB():
     global EEPROMDevice
     CheckPass = 0
+    EEPROMDevice.SetPower(1)
     try:
         ReturnByte = []
         EM.SetEEPROM(EM.MFB)
@@ -123,7 +137,7 @@ def ProgramMFB():
         Size  = EM.ReturnEEPROMMapSize()
         print(SendArray)
         print(Size)
-
+        EEPROMDevice.SetAllert(1)
         for x in range(Size): ##Add P#
             bytes_val = int(SendArray[x]).to_bytes(1, 'big')
             #print("Byte = ",Data)
@@ -144,11 +158,14 @@ def ProgramMFB():
     except Exception as A: #(Where A is a temporary variable)
         print(A)
     finally:
+        EEPROMDevice.SetPower(0)
+        EEPROMDevice.SetAllert(0)
         return CheckPass
 
 def ProgramMedBin():
     global EEPROMDevice
     CheckPass = 0
+    EEPROMDevice.SetPower(1)
     try:
         ReturnByte = []
         EM.SetEEPROM(EM.MEDBIN)
@@ -158,7 +175,7 @@ def ProgramMedBin():
         Size  = EM.ReturnEEPROMMapSize()
         print(SendArray)
         print(Size)
-
+        EEPROMDevice.SetAllert(1)
         for x in range(Size): ##Add P#
             bytes_val = int(SendArray[x]).to_bytes(1, 'big')
             #print("Byte = ",Data)
@@ -179,6 +196,8 @@ def ProgramMedBin():
     except Exception as A: #(Where A is a temporary variable)
         print(A)
     finally:
+        EEPROMDevice.SetPower(0)
+        EEPROMDevice.SetAllert(0)
         return CheckPass
 
 def ReadDevice(Type):
@@ -187,28 +206,36 @@ def ReadDevice(Type):
     try:
         ReturnByte = b''
 
-        for x in range(18):
+        for x in range(21):
             ReturnByte += EEPROMDevice.ReadByte(x)
 
-        SerNumb = ReturnByte[17]-48
-        print(SerNumb)
-        for x in range(18,SerNumb+18):
-            print(x)
+        #print(ReturnByte)
+        SerNumb = ReturnByte[20]
+        #print(SerNumb)
+        for x in range(21,SerNumb+21+1):
+            #print(x)
             ReturnByte += EEPROMDevice.ReadByte(x)
 
         print(ReturnByte)
-        print(ReturnByte[0])
+        #print(ReturnByte[0])
         if((Type == 1) and (ReturnByte[0] == 77)):
             print("MFB Match")
+            EM.SetEEPROM(EM.MFB)
+
         if((Type == 2) and (ReturnByte[0] == 80)):
             print("PD Match")
+            EM.SetEEPROM(EM.PD)
+
+        EM.StartEEPROMMap()
+        EM.SetEEPROMFile(ReturnByte)
+        if(EM.EEPROMMapValidate()):
+            EM.SaveToDF()
+
     except Exception as A: #(Where A is a temporary variable)
         print(A)
     finally:
         return CheckPass
 
-
-        
 if __name__ == "__main__":
     DF.initialize()  ##Set up Data Dictonary, (DF)
     TestI2C()## Test if we have a good I2C Device
